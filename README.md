@@ -42,6 +42,19 @@ Example:
 
 The sample's `12345` ingredient hash is a placeholder. Hashes can be decimal strings or hexadecimal strings prefixed with `0x`. Keep your actual IDs stable and use the same config on all runtimes.
 
+### How the ingredients make the ingot
+
+The `ingredients` list is the input list for the ingot's smelting recipe. Add one entry for each item the recipe consumes; `count` sets how many of that item are required. A recipe can use one ingredient, two ingredients, or more. For example, two entries can require 2 Iron Ingots and 1 Coal to smelt into 1 Example Alloy Ingot.
+
+```json
+"ingredients": [
+  { "itemHash": "12345", "itemName": "Iron Ingot", "count": 2 },
+  { "itemHash": "12346", "itemName": "Coal", "count": 1 }
+]
+```
+
+The hashes in this example are placeholders; replace them with the actual item hashes. The ingot integration adds this as a smelting recipe. Forge mould recipes use the completed ingot as their material to craft other items.
+
 ## Definition fields
 
 | Field | Meaning |
