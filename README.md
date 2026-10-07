@@ -4,8 +4,8 @@ Create custom ingots for *A Township Tale* by editing a JSON file. The shared co
 
 ## What you need
 
-- The `CustomIngots.API.dll` from the [latest release](https://github.com/calebv2/Custom-Ingots/releases/latest).
-- The generic `CustomIngots.Config.dll` loader.
+- [`CustomIngots.API.dll`](https://github.com/calebv2/Custom-Ingots/releases/latest/download/CustomIngots.API.dll) in `UserLibs`.
+- [`CustomIngots.Config.dll`](https://github.com/calebv2/Custom-Ingots/releases/latest/download/CustomIngots.Config.dll), the shared loader, in `Mods`.
 - A compatible ingot integration mod installed on the server and clients. This API provides the definitions and registration catalog; on its own it does not add game recipes, prefabs, or materials.
 
 Install `CustomIngots.API.dll` in `UserLibs` on the server and each client. Install `CustomIngots.Config.dll` and the compatible ingot integration mod in the appropriate `Mods` folders. Put the same `ingots.json` file on the server and every client so they agree on item and network identifiers.
