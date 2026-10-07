@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <AssemblyName>CustomIngots.Config</AssemblyName>
+    <RootNamespace>CustomIngots.Config</RootNamespace>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GamePath Condition="'$(GamePath)' == ''">/game</GamePath>
+    <CustomIngotsApiPath Condition="'$(CustomIngotsApiPath)' == ''">../bin/CustomIngots.API.dll</CustomIngotsApiPath>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <OutputPath>bin/</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="CustomIngots.API"><HintPath>$(CustomIngotsApiPath)</HintPath><Private>false</Private></Reference>
+    <Reference Include="MelonLoader"><HintPath>$(GamePath)/MelonLoader/net472/MelonLoader.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(GamePath)/A Township Tale_Data/Managed/UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="System.Web.Extensions" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Core.cs" />
+    <Compile Include="IngotConfig.cs" />
+  </ItemGroup>
+</Project>
