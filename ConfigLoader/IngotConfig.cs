@@ -2,8 +2,8 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Web.Script.Serialization;
 using CustomIngots.API;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace CustomIngots.Config;
@@ -14,8 +14,7 @@ public sealed class IngotConfigFile
 
     public static IngotConfig[] Load(string path)
     {
-        var serializer = new JavaScriptSerializer();
-        var config = serializer.Deserialize<IngotConfigFile>(File.ReadAllText(path));
+        var config = JsonConvert.DeserializeObject<IngotConfigFile>(File.ReadAllText(path));
         if (config == null || config.Ingots == null)
             throw new InvalidDataException("The config must contain an 'ingots' array.");
         return config.Ingots;
@@ -34,6 +33,7 @@ public sealed class IngotConfig
     public IngredientConfig[] Ingredients { get; set; } = Array.Empty<IngredientConfig>();
     public ColorConfig Tint { get; set; } = new ColorConfig();
     public ColorConfig Emission { get; set; } = new ColorConfig();
+    public EmissionPulseConfig? EmissionPulse { get; set; }
     public string[] LegacyPrefabHashes { get; set; } = Array.Empty<string>();
     public StatScalingConfig? StatScaling { get; set; }
 
@@ -45,17 +45,20 @@ public sealed class IngotConfig
             .Select(ParseHash).ToArray();
         var tint = (Tint ?? new ColorConfig()).ToColor();
         var emission = (Emission ?? new ColorConfig()).ToColor();
+        var emissionPulse = EmissionPulse?.ToPulse();
 
         if (StatScaling == null)
         {
             return new IngotDefinition(ItemName, SourceItemName, ParseHash(ItemHash), ParseHash(PrefabHash),
-                ParseHash(RecipeHash), ParseHash(MaterialHash), MaterialName, ingredients, tint, emission, legacyHashes);
+                ParseHash(RecipeHash), ParseHash(MaterialHash), MaterialName, ingredients, tint, emission,
+                emissionPulse, legacyHashes);
         }
 
         var scaling = new IngotStatScaling(ParseHash(StatScaling.SourceMaterialHash),
             StatScaling.DamageScale, StatScaling.DurabilityScale);
         return new IngotDefinition(scaling, ItemName, SourceItemName, ParseHash(ItemHash), ParseHash(PrefabHash),
-            ParseHash(RecipeHash), ParseHash(MaterialHash), MaterialName, ingredients, tint, emission, legacyHashes);
+            ParseHash(RecipeHash), ParseHash(MaterialHash), MaterialName, ingredients, tint, emission,
+            emissionPulse, legacyHashes);
     }
 
     internal static uint ParseHash(string value)
@@ -93,4 +96,27 @@ public sealed class StatScalingConfig
     public string SourceMaterialHash { get; set; } = "";
     public float DamageScale { get; set; } = 1f;
     public float DurabilityScale { get; set; } = 1f;
+}
+
+public sealed class EmissionPulseConfig
+{
+    public float LowMultiplier { get; set; } = 0f;
+    public float HighMultiplier { get; set; } = 1f;
+    public float BeatsPerMinute { get; set; } = 60f;
+    public EmissionFadeCycleConfig? FadeCycle { get; set; }
+
+    public IngotEmissionPulse ToPulse() => FadeCycle == null
+        ? new IngotEmissionPulse(LowMultiplier, HighMultiplier, BeatsPerMinute)
+        : new IngotEmissionPulse(LowMultiplier, HighMultiplier, FadeCycle.ToFadeCycle());
+}
+
+public sealed class EmissionFadeCycleConfig
+{
+    public float OffHoldSeconds { get; set; }
+    public float FadeInSeconds { get; set; }
+    public float GlowHoldSeconds { get; set; }
+    public float FadeOutSeconds { get; set; }
+
+    public IngotEmissionFadeCycle ToFadeCycle() => new IngotEmissionFadeCycle(
+        OffHoldSeconds, FadeInSeconds, GlowHoldSeconds, FadeOutSeconds);
 }

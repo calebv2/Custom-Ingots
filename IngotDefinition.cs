@@ -39,6 +39,69 @@ public sealed class IngotStatScaling
     public float DurabilityScale { get; }
 }
 
+public sealed class IngotEmissionPulse
+{
+    public IngotEmissionPulse(float lowMultiplier, float highMultiplier, float beatsPerMinute)
+        : this(lowMultiplier, highMultiplier, beatsPerMinute, null)
+    {
+    }
+
+    public IngotEmissionPulse(float lowMultiplier, float highMultiplier, IngotEmissionFadeCycle fadeCycle)
+        : this(lowMultiplier, highMultiplier, 60f, fadeCycle ?? throw new ArgumentNullException(nameof(fadeCycle)))
+    {
+    }
+
+    private IngotEmissionPulse(float lowMultiplier, float highMultiplier, float beatsPerMinute, IngotEmissionFadeCycle? fadeCycle)
+    {
+        if (float.IsNaN(lowMultiplier) || float.IsInfinity(lowMultiplier) || lowMultiplier < 0f)
+            throw new ArgumentOutOfRangeException(nameof(lowMultiplier));
+        if (float.IsNaN(highMultiplier) || float.IsInfinity(highMultiplier) || highMultiplier < lowMultiplier)
+            throw new ArgumentOutOfRangeException(nameof(highMultiplier));
+        if (float.IsNaN(beatsPerMinute) || float.IsInfinity(beatsPerMinute) || beatsPerMinute <= 0f)
+            throw new ArgumentOutOfRangeException(nameof(beatsPerMinute));
+
+        LowMultiplier = lowMultiplier;
+        HighMultiplier = highMultiplier;
+        BeatsPerMinute = beatsPerMinute;
+        FadeCycle = fadeCycle;
+    }
+
+    public float LowMultiplier { get; }
+    public float HighMultiplier { get; }
+    public float BeatsPerMinute { get; }
+    public IngotEmissionFadeCycle? FadeCycle { get; }
+}
+
+public sealed class IngotEmissionFadeCycle
+{
+    public IngotEmissionFadeCycle(float offHoldSeconds, float fadeInSeconds, float glowHoldSeconds, float fadeOutSeconds)
+    {
+        if (float.IsNaN(offHoldSeconds) || float.IsInfinity(offHoldSeconds) || offHoldSeconds < 0f)
+            throw new ArgumentOutOfRangeException(nameof(offHoldSeconds));
+        if (float.IsNaN(fadeInSeconds) || float.IsInfinity(fadeInSeconds) || fadeInSeconds <= 0f)
+            throw new ArgumentOutOfRangeException(nameof(fadeInSeconds));
+        if (float.IsNaN(glowHoldSeconds) || float.IsInfinity(glowHoldSeconds) || glowHoldSeconds < 0f)
+            throw new ArgumentOutOfRangeException(nameof(glowHoldSeconds));
+        if (float.IsNaN(fadeOutSeconds) || float.IsInfinity(fadeOutSeconds) || fadeOutSeconds <= 0f)
+            throw new ArgumentOutOfRangeException(nameof(fadeOutSeconds));
+
+        var totalSeconds = offHoldSeconds + fadeInSeconds + glowHoldSeconds + fadeOutSeconds;
+        if (float.IsInfinity(totalSeconds)) throw new ArgumentOutOfRangeException(nameof(fadeOutSeconds), "The total cycle time must be finite.");
+
+        OffHoldSeconds = offHoldSeconds;
+        FadeInSeconds = fadeInSeconds;
+        GlowHoldSeconds = glowHoldSeconds;
+        FadeOutSeconds = fadeOutSeconds;
+        TotalSeconds = totalSeconds;
+    }
+
+    public float OffHoldSeconds { get; }
+    public float FadeInSeconds { get; }
+    public float GlowHoldSeconds { get; }
+    public float FadeOutSeconds { get; }
+    public float TotalSeconds { get; }
+}
+
 // Stable identifiers and appearance are shared by the server and every client.
 // Register future ingots in IngotCatalog with unique item, prefab, recipe, and material hashes.
 public sealed class IngotDefinition
@@ -56,10 +119,49 @@ public sealed class IngotDefinition
         Color tint,
         Color emission,
         params uint[] legacyPrefabHashes)
+        : this(statScaling, itemName, sourceItemName, itemHash, prefabHash, recipeHash, materialHash,
+            materialName, ingredients, tint, emission, null, legacyPrefabHashes)
+    {
+    }
+
+    public IngotDefinition(
+        string itemName,
+        string sourceItemName,
+        uint itemHash,
+        uint prefabHash,
+        uint recipeHash,
+        uint materialHash,
+        string materialName,
+        IngotIngredient[] ingredients,
+        Color tint,
+        Color emission,
+        IngotEmissionPulse? emissionPulse,
+        params uint[] legacyPrefabHashes)
         : this(itemName, sourceItemName, itemHash, prefabHash, recipeHash, materialHash,
             materialName, ingredients, tint, emission, legacyPrefabHashes)
     {
+        EmissionPulse = emissionPulse;
+    }
+
+    public IngotDefinition(
+        IngotStatScaling statScaling,
+        string itemName,
+        string sourceItemName,
+        uint itemHash,
+        uint prefabHash,
+        uint recipeHash,
+        uint materialHash,
+        string materialName,
+        IngotIngredient[] ingredients,
+        Color tint,
+        Color emission,
+        IngotEmissionPulse? emissionPulse,
+        params uint[] legacyPrefabHashes)
+        : this(itemName, sourceItemName, itemHash, prefabHash, recipeHash, materialHash,
+            materialName, ingredients, tint, emission, emissionPulse, legacyPrefabHashes)
+    {
         StatScaling = statScaling ?? throw new ArgumentNullException(nameof(statScaling));
+        EmissionPulse = emissionPulse;
     }
 
     public IngotDefinition(
@@ -115,6 +217,7 @@ public sealed class IngotDefinition
     public System.Collections.Generic.IReadOnlyList<IngotIngredient> Ingredients { get; }
     public Color Tint { get; }
     public Color Emission { get; }
+    public IngotEmissionPulse? EmissionPulse { get; }
     public IngotStatScaling? StatScaling { get; }
     public System.Collections.Generic.IReadOnlyList<uint> LegacyPrefabHashes { get; }
 }

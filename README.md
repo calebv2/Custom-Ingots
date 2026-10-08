@@ -5,17 +5,18 @@ Create custom ingots for *A Township Tale* by editing a JSON file. The shared co
 ## What you need
 
 - [`CustomIngots.API.dll`](https://github.com/calebv2/Custom-Ingots/releases/latest/download/CustomIngots.API.dll) in `UserLibs`.
-- [`CustomIngots.Config.dll`](https://github.com/calebv2/Custom-Ingots/releases/latest/download/CustomIngots.Config.dll), the shared loader, in `Mods`.
-- A compatible ingot integration mod installed on the server and clients. This API provides the definitions and registration catalog; on its own it does not add game recipes, prefabs, or materials.
+- [`CustomIngots.Config.dll`](https://github.com/calebv2/Custom-Ingots/releases/latest/download/CustomIngots.Config.dll) in `Mods`. The loader reads `ingots.json` and registers the ingot items, materials, smelting recipes, forge mould recipes, and client appearances.
 
-Install `CustomIngots.API.dll` in `UserLibs` on the server and each client. Install `CustomIngots.Config.dll` and the compatible ingot integration mod in the appropriate `Mods` folders. Put the same `ingots.json` file on the server and every client so they agree on item and network identifiers.
+Install both DLLs on the server and every client. The server's `ingots.json` is sent to clients when they join and saved to `UserData/CustomIngots/ingots.json`. Individual ingots only need JSON definitions; you do not need to build or install a separate DLL for each one.
 
 ## Create an ingot
 
 1. Start the game once with the config loader installed. It creates `UserData/CustomIngots/ingots.json` with an example ingot.
 2. Edit the JSON file. You can define one or more ingots in the `ingots` array.
 3. Replace the example hashes and ingredient item hash with IDs that are valid for your mod and game setup.
-4. Copy the same JSON file to the server and every client, then restart.
+4. Put the finished JSON file on the server and restart it. When a client joins, the server sends its config and the client saves it in the correct `UserData/CustomIngots/ingots.json` location. The client must restart once after receiving a new or changed config so the ingots can be registered before joining a world.
+
+The server's config is authoritative. The client's existing file is backed up as `ingots.json.before-server-sync.bak` the first time it is replaced. Keep a separate backup of any client-only edits you need; syncing replaces the active client config with the server copy. Clients need both Custom Ingots DLLs installed, but they do not need to edit or manually copy the JSON file.
 
 Example:
 
@@ -68,9 +69,43 @@ The hashes in this example are placeholders; replace them with the actual item h
 | `materialName` | Name for the custom material. |
 | `ingredients` | One or more `IngotIngredient(itemHash, itemName, count)` entries. Counts must be positive. |
 | `tint`, `emission` | Material colors, using Unity's `Color` type. |
+| `emissionPulse` | Optional client-side glow animation. Use `beatsPerMinute` for a heartbeat or `fadeCycle` for timed holds and fades. |
 | `legacyPrefabHashes` | Optional trailing prefab IDs to keep recognizing older IDs when migrating an existing ingot. |
 
 All hashes should remain the same across updates and match on server and clients. Use IDs reserved for your mod; do not copy the example IDs. The catalog rejects duplicate item, prefab, recipe, or material hashes and duplicate item names. It also rejects two definitions that use the same set of ingredient item hashes, even if their ingredient counts differ. An ingot cannot be one of its own ingredients.
+
+### Optional animated emission
+
+Add `emissionPulse` to animate the configured `emission` color on clients. For a slow rise to full glow followed by a quicker fade back to no glow, use `fadeCycle`:
+
+```json
+"emissionPulse": {
+  "lowMultiplier": 0.0,
+  "highMultiplier": 2.5,
+  "fadeCycle": {
+    "offHoldSeconds": 1.5,
+    "fadeInSeconds": 1.2,
+    "glowHoldSeconds": 0.8,
+    "fadeOutSeconds": 0.4
+  }
+}
+```
+
+This cycle stays dark for 1.5 seconds, fades to full glow over 1.2 seconds, stays bright for 0.8 seconds, then fades back over 0.4 seconds. It repeats every 3.9 seconds. Increase `offHoldSeconds` or `glowHoldSeconds` to make either state last longer. Increase `fadeInSeconds` or `fadeOutSeconds` to slow that transition. Hold durations can be zero; fade durations must be greater than zero.
+
+[Death Steel's complete JSON definition](examples/death-steel.json) shows these fade controls with its current timing values. Add its entry to your server's `ingots` array if you already have other ingots configured.
+
+For the original double-beat heartbeat, use `beatsPerMinute` instead:
+
+```json
+"emissionPulse": {
+  "lowMultiplier": 0.0,
+  "highMultiplier": 1.0,
+  "beatsPerMinute": 60
+}
+```
+
+The multiplier is applied to the configured emission color. A low multiplier of `0` removes the glow in the dark state; a high multiplier of `1` reaches the configured color. Values above `1` make the peak brighter than the configured emission. With `fadeCycle`, `beatsPerMinute` is ignored. With `beatsPerMinute` alone, the double-beat pattern repeats once per beat; at `60` beats per minute, that is once per second. This changes only the client glow; it does not change damage or durability. Every client needs the updated Custom Ingots DLLs. The server sends the config to clients when they join.
 
 ## Optional gameplay stat scaling
 
@@ -84,14 +119,15 @@ Add a `statScaling` object to an ingot to base gameplay stats on another materia
 }
 ```
 
-The integration uses the selected source material's gameplay profile and applies the damage and durability multipliers. Both multipliers must be positive, finite numbers. Without `IngotStatScaling`, the API leaves the integration to use its default gameplay stats for the ingot.
+The integration uses the selected source material's gameplay profile. The resulting damage multiplier is the source material's damage multiplier times `damageScale`; durability works the same way. For example, a source with damage `2.0` and durability `1.5` becomes `2.5` and `1.8` with scales of `1.25` and `1.2`. These are material multipliers; a finished item's stats also depend on its item type and crafting quality. Both scales must be positive, finite numbers. Without `statScaling`, the integration uses its default gameplay stats for the ingot.
 
 ## Troubleshooting
 
-- **The ingot is missing or differs between players:** confirm the API and config-loader DLLs are installed on the server and every client, and that each runtime has the same `ingots.json` with matching hashes.
+- **The ingot is missing on a first join:** the client saves the server config after joining. Restart the client once, then reconnect.
+- **The client does not receive the server config:** confirm the API and config-loader DLLs are installed on both the server and client, and check the logs for a config delivery or save error.
 - **Registration throws an exception:** check for duplicate hashes or item names, repeated ingredient sets, a zero hash, or a prefab hash above `65535`.
 - **The catalog is already sealed:** the config loader must run during initialization, before the ingot integration reads the catalog. Check that the loader is installed and enabled.
-- **The API is installed but no ingot appears:** make sure a compatible ingot integration mod is installed. The API catalog alone does not create in-game recipes or assets.
+- **The ingot is missing:** check the server and client logs for a registration error, confirm every ingredient item name and hash exists in the game, and make sure both Custom Ingots DLLs are installed. After the server sends a changed config, restart the client once.
 
 ## Building the config loader
 

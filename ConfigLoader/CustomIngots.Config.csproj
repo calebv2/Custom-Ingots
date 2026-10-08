@@ -3,8 +3,8 @@
     <TargetFramework>net472</TargetFramework>
     <AssemblyName>CustomIngots.Config</AssemblyName>
     <RootNamespace>CustomIngots.Config</RootNamespace>
-    <Version>1.0.0</Version>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <Version>1.2.5</Version>
+    <AssemblyVersion>1.2.5.0</AssemblyVersion>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <GamePath Condition="'$(GamePath)' == ''">/game</GamePath>
     <CustomIngotsApiPath Condition="'$(CustomIngotsApiPath)' == ''">../bin/CustomIngots.API.dll</CustomIngotsApiPath>
@@ -15,12 +15,35 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="CustomIngots.API"><HintPath>$(CustomIngotsApiPath)</HintPath><Private>false</Private></Reference>
-    <Reference Include="MelonLoader"><HintPath>$(GamePath)/MelonLoader/net472/MelonLoader.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="MelonLoader"><HintPath>$(GamePath)/MelonLoader/net35/MelonLoader.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>$(GamePath)/MelonLoader/net35/0Harmony.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Root.Township"><HintPath>$(GamePath)/A Township Tale_Data/Managed/Root.Township.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Alta.Values"><HintPath>$(GamePath)/A Township Tale_Data/Managed/Alta.Values.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Newtonsoft.Json"><HintPath>$(GamePath)/MelonLoader/net35/Newtonsoft.Json.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.CoreModule"><HintPath>$(GamePath)/A Township Tale_Data/Managed/UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="System.Web.Extensions" />
+    <Reference Include="UnityEngine.PhysicsModule"><HintPath>$(GamePath)/A Township Tale_Data/Managed/UnityEngine.PhysicsModule.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core.cs" />
     <Compile Include="IngotConfig.cs" />
+    <Compile Include="../Integration/CrystalMaterialDefaults.cs" />
+    <Compile Include="../Integration/CrystalMaterialRegistration.cs" />
+    <Compile Include="../Integration/CrystalAppearancePolicy.cs" />
+    <Compile Include="../Integration/IngotRegistration.cs" />
+    <Compile Include="../Integration/IngotSpawnActivation.cs" />
+    <Compile Include="../Integration/IngotConsumptionPolicy.cs" />
+    <Compile Include="../Integration/IngotSmeltingRecipeRegistration.cs" />
+    <Compile Include="../Integration/IngotForgeUnlock.cs" />
+    <Compile Include="../Integration/CrystalMouldTarget.cs" />
+    <Compile Include="../Integration/CrystalMouldRecipeRegistration.cs" />
+    <Compile Include="../Integration/CrystalSmelterInputFilter.cs" />
+    <Compile Include="../Integration/CrystalSmelterRecipeGate.cs" />
+    <Compile Include="../Integration/CrystalMouldOutputMaterialPatch.cs" />
+    <Compile Include="../Integration/PatchTargetResolver.cs" />
+    <Compile Include="../Integration/CrystalClientAppearancePatch.cs" />
+    <Compile Include="../Integration/IngotEmissionPulseController.cs" />
+    <Compile Include="../Integration/IngotClientAppearance.cs" />
+    <Compile Include="../Integration/ServerConfigSync.cs" />
+    <Compile Include="../Integration/ClientConfigSync.cs" />
   </ItemGroup>
 </Project>

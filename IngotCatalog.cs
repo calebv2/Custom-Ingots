@@ -21,7 +21,7 @@ public static class IngotCatalog
         0x43575001u);
 
     public static readonly IngotDefinition Crysteel = new IngotDefinition(
-        new IngotStatScaling(DarksteelMaterialHash, 1.10f, 0.90f),
+        new IngotStatScaling(DarksteelMaterialHash, 1.10f, 1.10f),
         "Crysteel Ingot", "Iron Ingot",
         0x43574902u, 0x5002u, 0x43575202u,
         CrysteelMaterialHash, "Crysteel",
@@ -56,6 +56,29 @@ public static class IngotCatalog
             if (sealedForRuntime)
                 throw new InvalidOperationException("Ingot registration is closed. Call IngotCatalog.Register during OnInitializeMelon.");
             if (ReferenceEquals(definition, Crystal)) return;
+
+            var existingIndex = Array.FindIndex(Definitions, candidate => candidate.ItemHash == definition.ItemHash);
+            if (existingIndex >= 0)
+            {
+                var existingDefinition = Definitions[existingIndex];
+                if (AreEquivalent(existingDefinition, definition)) return;
+
+                // The shared JSON may customize the bundled Crysteel definition while keeping
+                // its stable saved-item and network identities.
+                if (ReferenceEquals(existingDefinition, Crysteel)
+                    && definition.ItemName == Crysteel.ItemName
+                    && definition.PrefabHash == Crysteel.PrefabHash
+                    && definition.RecipeHash == Crysteel.RecipeHash
+                    && definition.MaterialHash == Crysteel.MaterialHash)
+                {
+                    var replaced = (IngotDefinition[])Definitions.Clone();
+                    replaced[existingIndex] = definition;
+                    Validate(replaced);
+                    Definitions = replaced;
+                    ReadOnlyDefinitions = Array.AsReadOnly(replaced);
+                    return;
+                }
+            }
 
             var updated = Definitions.Concat(new[] { definition }).ToArray();
             Validate(updated);
@@ -110,5 +133,68 @@ public static class IngotCatalog
     {
         if (definitions.Select(hash).Distinct().Count() != definitions.Count)
             throw new InvalidOperationException("Two ingot definitions use the same " + kind + " hash.");
+    }
+
+    private static bool AreEquivalent(IngotDefinition left, IngotDefinition right)
+    {
+        if (left.ItemName != right.ItemName
+            || left.SourceItemName != right.SourceItemName
+            || left.PrefabHash != right.PrefabHash
+            || left.RecipeHash != right.RecipeHash
+            || left.MaterialHash != right.MaterialHash
+            || left.MaterialName != right.MaterialName
+            || !left.Tint.Equals(right.Tint)
+            || !left.Emission.Equals(right.Emission)
+            || left.Ingredients.Count != right.Ingredients.Count
+            || left.LegacyPrefabHashes.Count != right.LegacyPrefabHashes.Count)
+        {
+            return false;
+        }
+
+        for (var index = 0; index < left.Ingredients.Count; index++)
+        {
+            var leftIngredient = left.Ingredients[index];
+            var rightIngredient = right.Ingredients[index];
+            if (leftIngredient.ItemHash != rightIngredient.ItemHash
+                || leftIngredient.ItemName != rightIngredient.ItemName
+                || leftIngredient.Count != rightIngredient.Count)
+            {
+                return false;
+            }
+        }
+
+        for (var index = 0; index < left.LegacyPrefabHashes.Count; index++)
+        {
+            if (left.LegacyPrefabHashes[index] != right.LegacyPrefabHashes[index]) return false;
+        }
+
+        if (left.StatScaling == null || right.StatScaling == null)
+        {
+            if (left.StatScaling != null || right.StatScaling != null) return false;
+        }
+        else if (left.StatScaling.SourceMaterialHash != right.StatScaling.SourceMaterialHash
+            || !left.StatScaling.DamageScale.Equals(right.StatScaling.DamageScale)
+            || !left.StatScaling.DurabilityScale.Equals(right.StatScaling.DurabilityScale))
+        {
+            return false;
+        }
+
+        if (left.EmissionPulse == null || right.EmissionPulse == null)
+            return left.EmissionPulse == null && right.EmissionPulse == null;
+
+        if (!left.EmissionPulse.LowMultiplier.Equals(right.EmissionPulse.LowMultiplier)
+            || !left.EmissionPulse.HighMultiplier.Equals(right.EmissionPulse.HighMultiplier))
+            return false;
+
+        var leftCycle = left.EmissionPulse.FadeCycle;
+        var rightCycle = right.EmissionPulse.FadeCycle;
+        if (leftCycle == null || rightCycle == null)
+            return leftCycle == null && rightCycle == null
+                && left.EmissionPulse.BeatsPerMinute.Equals(right.EmissionPulse.BeatsPerMinute);
+
+        return leftCycle.OffHoldSeconds.Equals(rightCycle.OffHoldSeconds)
+            && leftCycle.FadeInSeconds.Equals(rightCycle.FadeInSeconds)
+            && leftCycle.GlowHoldSeconds.Equals(rightCycle.GlowHoldSeconds)
+            && leftCycle.FadeOutSeconds.Equals(rightCycle.FadeOutSeconds);
     }
 }

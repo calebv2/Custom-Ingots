@@ -1,0 +1,52 @@
+{
+  "ingots": [
+    {
+      "itemName": "Death Steel Ingot",
+      "sourceItemName": "Iron Ingot",
+      "itemHash": "0x44454101",
+      "prefabHash": "0x5005",
+      "recipeHash": "0x44455201",
+      "materialHash": "0x44454D01",
+      "materialName": "Death Steel",
+      "ingredients": [
+        {
+          "itemHash": "50292",
+          "itemName": "Darksteel Ingot",
+          "count": 1
+        },
+        {
+          "itemHash": "30996",
+          "itemName": "Red Iron Ingot",
+          "count": 10
+        }
+      ],
+      "tint": {
+        "r": 0.16,
+        "g": 0.15,
+        "b": 0.16,
+        "a": 1.0
+      },
+      "emission": {
+        "r": 1.0,
+        "g": 0.025,
+        "b": 0.005,
+        "a": 1.0
+      },
+      "emissionPulse": {
+        "lowMultiplier": 0.0,
+        "highMultiplier": 2.5,
+        "fadeCycle": {
+          "offHoldSeconds": 1.2,
+          "fadeInSeconds": 1.5,
+          "glowHoldSeconds": 1.2,
+          "fadeOutSeconds": 1.5
+        }
+      },
+      "statScaling": {
+        "sourceMaterialHash": "55232",
+        "damageScale": 1.25,
+        "durabilityScale": 1.2
+      }
+    }
+  ]
+}
