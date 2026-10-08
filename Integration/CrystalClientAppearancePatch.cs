@@ -46,8 +46,13 @@ internal static class CrystalClientAppearancePatch
     private static void SetMaterialPostfix(PhysicalMaterialPart __instance, PhysicalMaterial physicalMaterial)
     {
         var appearance = physicalMaterial == null ? null : IngotCatalog.FindByMaterialHash(physicalMaterial.Hash);
-        if (appearance == null) return;
         if (RenderersField.GetValue(__instance) is not Renderer[] renderers) return;
+        if (appearance == null)
+        {
+            foreach (var renderer in renderers)
+                if (renderer != null) IngotLengthGradientController.Apply(renderer, null);
+            return;
+        }
 
         var tint = appearance.Tint;
         var emission = appearance.Emission;
@@ -56,11 +61,16 @@ internal static class CrystalClientAppearancePatch
         foreach (var renderer in renderers)
         {
             if (renderer == null) continue;
-            var material = renderer.material;
-            foreach (var propertyName in new[] { "_ColorA", "_ColorB", "_Color" })
+            var gradientApplied = IngotLengthGradientController.Apply(renderer, appearance.Gradient);
+            var material = gradientApplied ? renderer.sharedMaterial : renderer.material;
+            if (material == null) continue;
+            if (!gradientApplied)
             {
-                if (!CrystalAppearancePolicy.ShouldTint(propertyName) || !material.HasProperty(propertyName)) continue;
-                material.SetColor(propertyName, tint);
+                foreach (var propertyName in new[] { "_ColorA", "_ColorB", "_Color" })
+                {
+                    if (!CrystalAppearancePolicy.ShouldTint(propertyName) || !material.HasProperty(propertyName)) continue;
+                    material.SetColor(propertyName, tint);
+                }
             }
 
             var hasEmission = false;
@@ -114,20 +124,30 @@ internal static class CrystalClientAppearancePatch
     {
         var physicalMaterial = forgedModel.PhysicalMaterial;
         var appearance = physicalMaterial == null ? null : IngotCatalog.FindByMaterialHash(physicalMaterial.Hash);
-        if (appearance == null) return;
 
         var meshFilter = forgedModel.MeshFilter;
         var renderer = meshFilter == null ? null : meshFilter.GetComponent<Renderer>();
         if (renderer == null) renderer = forgedModel.GetComponent<Renderer>();
         if (renderer == null) return;
 
-        var material = renderer.material;
+        if (appearance == null)
+        {
+            IngotLengthGradientController.Apply(renderer, null);
+            return;
+        }
+
+        var gradientApplied = IngotLengthGradientController.Apply(renderer, appearance.Gradient);
+        var material = gradientApplied ? renderer.sharedMaterial : renderer.material;
+        if (material == null) return;
         var tint = appearance.Tint;
         var emission = appearance.Emission;
-        foreach (var propertyName in new[] { "_ColorA", "_ColorB", "_Color" })
+        if (!gradientApplied)
         {
-            if (CrystalAppearancePolicy.ShouldTint(propertyName) && material.HasProperty(propertyName))
-                material.SetColor(propertyName, tint);
+            foreach (var propertyName in new[] { "_ColorA", "_ColorB", "_Color" })
+            {
+                if (CrystalAppearancePolicy.ShouldTint(propertyName) && material.HasProperty(propertyName))
+                    material.SetColor(propertyName, tint);
+            }
         }
         foreach (var propertyName in new[] { "_Emission", "_EmissionColor" })
         {

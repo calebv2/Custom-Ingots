@@ -179,6 +179,17 @@ public static class IngotCatalog
             return false;
         }
 
+        if (left.Gradient == null || right.Gradient == null)
+        {
+            if (left.Gradient != null || right.Gradient != null) return false;
+        }
+        else if (!left.Gradient.Start.Equals(right.Gradient.Start)
+            || !left.Gradient.End.Equals(right.Gradient.End)
+            || left.Gradient.Reverse != right.Gradient.Reverse)
+        {
+            return false;
+        }
+
         if (left.EmissionPulse == null || right.EmissionPulse == null)
             return left.EmissionPulse == null && right.EmissionPulse == null;
 

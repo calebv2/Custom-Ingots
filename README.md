@@ -69,6 +69,7 @@ The hashes in this example are placeholders; replace them with the actual item h
 | `materialName` | Name for the custom material. |
 | `ingredients` | One or more `IngotIngredient(itemHash, itemName, count)` entries. Counts must be positive. |
 | `tint`, `emission` | Material colors, using Unity's `Color` type. |
+| `gradient` | Optional two-color gradient running along the ingot or forged metal part's longest axis. |
 | `emissionPulse` | Optional client-side glow animation. Use `beatsPerMinute` for a heartbeat or `fadeCycle` for timed holds and fades. |
 | `legacyPrefabHashes` | Optional trailing prefab IDs to keep recognizing older IDs when migrating an existing ingot. |
 
@@ -106,6 +107,24 @@ For the original double-beat heartbeat, use `beatsPerMinute` instead:
 ```
 
 The multiplier is applied to the configured emission color. A low multiplier of `0` removes the glow in the dark state; a high multiplier of `1` reaches the configured color. Values above `1` make the peak brighter than the configured emission. With `fadeCycle`, `beatsPerMinute` is ignored. With `beatsPerMinute` alone, the double-beat pattern repeats once per beat; at `60` beats per minute, that is once per second. This changes only the client glow; it does not change damage or durability. Every client needs the updated Custom Ingots DLLs. The server sends the config to clients when they join.
+
+### Optional lengthwise color gradient
+
+Add `gradient` to blend two colors along the longest dimension of each metal mesh. The same setting applies to the loose ingot and generated metal blades or tool heads. It follows the item as it rotates; handles keep their own materials. The configured emission grows from zero at `start` to full brightness at `end`.
+
+```json
+"gradient": {
+  "start": { "r": 0.08, "g": 0.06, "b": 0.12, "a": 1.0 },
+  "end": { "r": 0.90, "g": 0.30, "b": 0.05, "a": 1.0 },
+  "reverse": false
+}
+```
+
+`start` and `end` are the colors at opposite ends of the mesh's longest local axis. Set `reverse` to `true` if you want the colors swapped on a particular ingot or blade. Keep `tint` as a fallback color for any renderer that cannot use the gradient. This is a client appearance setting and does not change gameplay stats. It can be combined with `emissionPulse`.
+
+Gradient-enabled metal uses a separate client material to show the full color blend and glow mask. Its shine and heated appearance can differ from the game's usual metal shader.
+
+[Light & Dark Steel](examples/light-dark-steel.json) is a complete example: 1 Darksteel Ingot and 1 Silver Ingot create a black-to-white ingot with white glow at its bright end. Its damage and durability sit between Crysteel and Death Steel in the supplied server setup.
 
 ## Optional gameplay stat scaling
 

@@ -1,0 +1,57 @@
+{
+  "ingots": [
+    {
+      "itemName": "Light & Dark Steel Ingot",
+      "sourceItemName": "Iron Ingot",
+      "itemHash": "0x4C444901",
+      "prefabHash": "0x5006",
+      "recipeHash": "0x4C445201",
+      "materialHash": "0x4C444D01",
+      "materialName": "Light & Dark Steel",
+      "ingredients": [
+        {
+          "itemHash": "50292",
+          "itemName": "Darksteel Ingot",
+          "count": 1
+        },
+        {
+          "itemHash": "57718",
+          "itemName": "Silver Ingot",
+          "count": 1
+        }
+      ],
+      "tint": {
+        "r": 0.2,
+        "g": 0.2,
+        "b": 0.2,
+        "a": 1.0
+      },
+  "emission": {
+        "r": 2.0,
+        "g": 2.0,
+        "b": 2.0,
+        "a": 1.0
+      },
+      "gradient": {
+        "start": {
+          "r": 0.005,
+          "g": 0.005,
+          "b": 0.005,
+          "a": 1.0
+        },
+        "end": {
+          "r": 1.0,
+          "g": 1.0,
+          "b": 1.0,
+          "a": 1.0
+        },
+        "reverse": false
+      },
+      "statScaling": {
+        "sourceMaterialHash": "55232",
+        "damageScale": 1.17,
+        "durabilityScale": 1.14
+      }
+    }
+  ]
+}

@@ -42,7 +42,7 @@ internal sealed class IngotEmissionPulseController : MonoBehaviour
         {
             var renderer = renderers[index];
             if (renderer == null) continue;
-            var material = renderer.material;
+            var material = renderer.sharedMaterial;
             if (material == null) continue;
             hasEmission[index] = material.HasProperty(EmissionId);
             hasEmissionColor[index] = material.HasProperty(EmissionColorId);
@@ -63,7 +63,7 @@ internal sealed class IngotEmissionPulseController : MonoBehaviour
         {
             var renderer = renderers[index];
             if (renderer == null) continue;
-            var material = renderer.material;
+            var material = renderer.sharedMaterial;
             if (material == null) continue;
             hasEmission[index] = material.HasProperty(EmissionId);
             hasEmissionColor[index] = material.HasProperty(EmissionColorId);

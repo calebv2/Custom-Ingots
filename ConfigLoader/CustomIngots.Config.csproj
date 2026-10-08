@@ -3,8 +3,8 @@
     <TargetFramework>net472</TargetFramework>
     <AssemblyName>CustomIngots.Config</AssemblyName>
     <RootNamespace>CustomIngots.Config</RootNamespace>
-    <Version>1.2.5</Version>
-    <AssemblyVersion>1.2.5.0</AssemblyVersion>
+    <Version>1.3.0</Version>
+    <AssemblyVersion>1.3.0.0</AssemblyVersion>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <GamePath Condition="'$(GamePath)' == ''">/game</GamePath>
     <CustomIngotsApiPath Condition="'$(CustomIngotsApiPath)' == ''">../bin/CustomIngots.API.dll</CustomIngotsApiPath>
@@ -42,6 +42,7 @@
     <Compile Include="../Integration/PatchTargetResolver.cs" />
     <Compile Include="../Integration/CrystalClientAppearancePatch.cs" />
     <Compile Include="../Integration/IngotEmissionPulseController.cs" />
+    <Compile Include="../Integration/IngotLengthGradientController.cs" />
     <Compile Include="../Integration/IngotClientAppearance.cs" />
     <Compile Include="../Integration/ServerConfigSync.cs" />
     <Compile Include="../Integration/ClientConfigSync.cs" />

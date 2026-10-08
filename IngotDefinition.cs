@@ -102,6 +102,27 @@ public sealed class IngotEmissionFadeCycle
     public float TotalSeconds { get; }
 }
 
+public sealed class IngotGradient
+{
+    public IngotGradient(Color start, Color end, bool reverse = false)
+    {
+        if (!IsFinite(start)) throw new ArgumentOutOfRangeException(nameof(start));
+        if (!IsFinite(end)) throw new ArgumentOutOfRangeException(nameof(end));
+        Start = start;
+        End = end;
+        Reverse = reverse;
+    }
+
+    public Color Start { get; }
+    public Color End { get; }
+    public bool Reverse { get; }
+
+    private static bool IsFinite(Color color) => IsFinite(color.r) && IsFinite(color.g)
+        && IsFinite(color.b) && IsFinite(color.a);
+
+    private static bool IsFinite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
+}
+
 // Stable identifiers and appearance are shared by the server and every client.
 // Register future ingots in IngotCatalog with unique item, prefab, recipe, and material hashes.
 public sealed class IngotDefinition
@@ -138,9 +159,29 @@ public sealed class IngotDefinition
         IngotEmissionPulse? emissionPulse,
         params uint[] legacyPrefabHashes)
         : this(itemName, sourceItemName, itemHash, prefabHash, recipeHash, materialHash,
+            materialName, ingredients, tint, emission, emissionPulse, null, legacyPrefabHashes)
+    {
+    }
+
+    public IngotDefinition(
+        string itemName,
+        string sourceItemName,
+        uint itemHash,
+        uint prefabHash,
+        uint recipeHash,
+        uint materialHash,
+        string materialName,
+        IngotIngredient[] ingredients,
+        Color tint,
+        Color emission,
+        IngotEmissionPulse? emissionPulse,
+        IngotGradient? gradient,
+        params uint[] legacyPrefabHashes)
+        : this(itemName, sourceItemName, itemHash, prefabHash, recipeHash, materialHash,
             materialName, ingredients, tint, emission, legacyPrefabHashes)
     {
         EmissionPulse = emissionPulse;
+        Gradient = gradient;
     }
 
     public IngotDefinition(
@@ -157,8 +198,28 @@ public sealed class IngotDefinition
         Color emission,
         IngotEmissionPulse? emissionPulse,
         params uint[] legacyPrefabHashes)
+        : this(statScaling, itemName, sourceItemName, itemHash, prefabHash, recipeHash, materialHash,
+            materialName, ingredients, tint, emission, emissionPulse, null, legacyPrefabHashes)
+    {
+    }
+
+    public IngotDefinition(
+        IngotStatScaling statScaling,
+        string itemName,
+        string sourceItemName,
+        uint itemHash,
+        uint prefabHash,
+        uint recipeHash,
+        uint materialHash,
+        string materialName,
+        IngotIngredient[] ingredients,
+        Color tint,
+        Color emission,
+        IngotEmissionPulse? emissionPulse,
+        IngotGradient? gradient,
+        params uint[] legacyPrefabHashes)
         : this(itemName, sourceItemName, itemHash, prefabHash, recipeHash, materialHash,
-            materialName, ingredients, tint, emission, emissionPulse, legacyPrefabHashes)
+            materialName, ingredients, tint, emission, emissionPulse, gradient, legacyPrefabHashes)
     {
         StatScaling = statScaling ?? throw new ArgumentNullException(nameof(statScaling));
         EmissionPulse = emissionPulse;
@@ -218,6 +279,7 @@ public sealed class IngotDefinition
     public Color Tint { get; }
     public Color Emission { get; }
     public IngotEmissionPulse? EmissionPulse { get; }
+    public IngotGradient? Gradient { get; }
     public IngotStatScaling? StatScaling { get; }
     public System.Collections.Generic.IReadOnlyList<uint> LegacyPrefabHashes { get; }
 }

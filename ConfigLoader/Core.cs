@@ -9,7 +9,7 @@ using MelonLoader;
 using MelonLoader.Utils;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(CustomIngots.Config.Core), "Custom Ingots", "1.2.5", "Custom Ingots API")]
+[assembly: MelonInfo(typeof(CustomIngots.Config.Core), "Custom Ingots", "1.3.0", "Custom Ingots API")]
 [assembly: MelonGame("Alta", "A Township Tale")]
 
 namespace CustomIngots.Config;

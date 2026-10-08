@@ -34,6 +34,7 @@ public sealed class IngotConfig
     public ColorConfig Tint { get; set; } = new ColorConfig();
     public ColorConfig Emission { get; set; } = new ColorConfig();
     public EmissionPulseConfig? EmissionPulse { get; set; }
+    public GradientConfig? Gradient { get; set; }
     public string[] LegacyPrefabHashes { get; set; } = Array.Empty<string>();
     public StatScalingConfig? StatScaling { get; set; }
 
@@ -46,19 +47,20 @@ public sealed class IngotConfig
         var tint = (Tint ?? new ColorConfig()).ToColor();
         var emission = (Emission ?? new ColorConfig()).ToColor();
         var emissionPulse = EmissionPulse?.ToPulse();
+        var gradient = Gradient?.ToGradient();
 
         if (StatScaling == null)
         {
             return new IngotDefinition(ItemName, SourceItemName, ParseHash(ItemHash), ParseHash(PrefabHash),
                 ParseHash(RecipeHash), ParseHash(MaterialHash), MaterialName, ingredients, tint, emission,
-                emissionPulse, legacyHashes);
+                emissionPulse, gradient, legacyHashes);
         }
 
         var scaling = new IngotStatScaling(ParseHash(StatScaling.SourceMaterialHash),
             StatScaling.DamageScale, StatScaling.DurabilityScale);
         return new IngotDefinition(scaling, ItemName, SourceItemName, ParseHash(ItemHash), ParseHash(PrefabHash),
             ParseHash(RecipeHash), ParseHash(MaterialHash), MaterialName, ingredients, tint, emission,
-            emissionPulse, legacyHashes);
+            emissionPulse, gradient, legacyHashes);
     }
 
     internal static uint ParseHash(string value)
@@ -119,4 +121,18 @@ public sealed class EmissionFadeCycleConfig
 
     public IngotEmissionFadeCycle ToFadeCycle() => new IngotEmissionFadeCycle(
         OffHoldSeconds, FadeInSeconds, GlowHoldSeconds, FadeOutSeconds);
+}
+
+public sealed class GradientConfig
+{
+    public ColorConfig? Start { get; set; }
+    public ColorConfig? End { get; set; }
+    public bool Reverse { get; set; }
+
+    public IngotGradient ToGradient()
+    {
+        if (Start == null || End == null)
+            throw new InvalidDataException("A gradient needs both 'start' and 'end' colors.");
+        return new IngotGradient(Start.ToColor(), End.ToColor(), Reverse);
+    }
 }
